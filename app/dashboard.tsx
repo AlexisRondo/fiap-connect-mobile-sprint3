@@ -1,304 +1,267 @@
 import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Image, SafeAreaView, Platform } from 'react-native';
 import React from 'react';
-import { useRouter } from 'expo-router'; 
-
-const Colors = {
-    FundoEscuro: '#000000',
-    DestaqueFIAP: '#F23064', 
-    TextoClaro: '#FFFFFF',
-    TextoNeutro: '#8C8C8C',
-    CardFundo: '#1A1A1A', 
-};
-
-// --- Dados Simulados ---
-const userName = "Gabriel";
-const hasNewInvite = true;
-const isGroupFormed = true; 
-
-
-    // Componente para os cartões de Acesso Rápido 
-interface QuickAccessCardProps {
-    title: string;
-    subtitle?: string;
-    buttonText?: string;
-    onPress?: () => void;
-    color?: string;
-}
-
-const QuickAccessCard: React.FC<QuickAccessCardProps> = ({ title, subtitle, buttonText = 'Abrir', onPress, color }) => (
-    <View style={styles.quickCard}>
-        <Text style={styles.cardTitle}>{title}</Text>
-        {subtitle ? <Text style={styles.cardSubtitle}>{subtitle}</Text> : null}
-        <TouchableOpacity 
-            style={[styles.cardButton, { backgroundColor: color || Colors.DestaqueFIAP }]}
-            onPress={onPress}
-        >
-            <Text style={styles.buttonText}>{buttonText}</Text>
-        </TouchableOpacity>
-    </View>
-);
-
-// Componente Principal (Dashboard)  
+import { useRouter } from 'expo-router';
+import { useAuth } from '../src/contexts/AuthContext';
+import { useTheme } from '../src/contexts/ThemeContext';
 
 export default function DashboardPage() {
-    const router = useRouter(); 
-    
-    // Tipagem segura para destinos conhecidos
+    const router = useRouter();
+    const { user, logout, getRm } = useAuth();
+    const { colors, isDark, toggleTheme } = useTheme();
+
+    const userName = getRm() || 'Aluno';
+    const hasNewInvite = true;
+    const isGroupFormed = false;
+
     type Destination =
       | 'searchpage'
       | 'profilepage'
-      | 'groupdetailspage'
-      | 'invites'    
+      | 'invites'
       | 'conversations'
       | 'accountsettingspage'
-      | 'login'
-      ;
-
+      | 'login';
 
     const handleNavigation = (destination: Destination) => {
-        console.log(`Navegando para: ${destination}`);
         router.push((`/${destination}` as unknown) as Parameters<typeof router.push>[0]);
     };
 
-    // ajuste dinâmico para o padding superior do header
+    const handleLogout = async () => {
+        await logout();
+        router.replace('/login');
+    };
+
     const headerPaddingTop = Platform.OS === 'ios' ? 50 : 20;
 
     return (
-        <SafeAreaView style={styles.fullContainer}>
+        <SafeAreaView style={[styles.fullContainer, { backgroundColor: colors.FundoPrincipal }]}>
             <ScrollView style={styles.contentContainer} contentContainerStyle={{ flexGrow: 1, paddingBottom: 110 }}>
 
-                {/* Área de Boas-Vindas (COM BOTÃO DE PERFIL) */}
-                <View style={[styles.header, { paddingTop: headerPaddingTop }]}>
-                    <Text style={styles.greeting}>Olá, {userName}!</Text>
-                    
-                    
+                <View style={[styles.header, { paddingTop: headerPaddingTop, backgroundColor: colors.FundoPrincipal, borderColor: colors.DestaqueFIAP }]}>
+                    <View>
+                        <Text style={[styles.greeting, { color: colors.TextoPrincipal }]}>Ola, {userName}!</Text>
+                    </View>
                     <View style={styles.headerRight}>
-                            {/* O gráfico/pessoas */}
-                            <Image 
-                                source={require('../assets/images/header-dashboard.png')} 
-                                style={styles.headerImage} 
-                                resizeMode="contain" 
-                            />
-                        </View>
-                </View>
-
-                {/* Cards Lado a Lado */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Acesso Rápido</Text>
-                    <View style={styles.quickAccessRow}>
-                        
-                        {/* BUSCAR GRUPO */}
-                        <QuickAccessCard
-                            title="Procurando um Time?"
-                            subtitle="Encontre seu Match Ideal!"
-                            buttonText="Começar a Buscar"
-                            onPress={() => handleNavigation('searchpage')} 
-                            color={Colors.DestaqueFIAP}
-                        />
-
-                        {/* CONVITE / STATUS */}
-                        <QuickAccessCard
-                            title={hasNewInvite ? "Você tem 1 Novo Convite de Grupo!" : "Nenhum Convite Novo"}
-                            subtitle={hasNewInvite ? "Não perca tempo!" : "Seja proativo."}
-                            buttonText={hasNewInvite ? "Ver Convite" : "Ver Perfil"}
-                            onPress={() => handleNavigation(hasNewInvite ? 'invites' : 'profilepage')} 
-                            color={hasNewInvite ? Colors.DestaqueFIAP : Colors.TextoNeutro}
+                        <TouchableOpacity onPress={toggleTheme} style={styles.themeButton}>
+                            <Text style={{ fontSize: 22 }}>{isDark ? '☀️' : '🌙'}</Text>
+                        </TouchableOpacity>
+                        <Image
+                            source={require('../assets/images/header-dashboard.png')}
+                            style={styles.headerImage}
+                            resizeMode="contain"
                         />
                     </View>
                 </View>
 
-                {/* Card Grande */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Notificações</Text>
-                    {isGroupFormed ? (
-                        <View style={styles.notificationCard}>
-                            <Text style={styles.notificationText}>Parabéns! Seu Grupo está Formado!</Text>
+                    <Text style={[styles.sectionTitle, { color: colors.TextoPrincipal }]}>Acesso Rapido</Text>
+                    <View style={styles.quickAccessRow}>
+                        <View style={[styles.quickCard, { backgroundColor: colors.FundoCard, borderColor: colors.DestaqueFIAP + '80' }]}>
+                            <Text style={[styles.cardTitle, { color: colors.TextoPrincipal }]}>Procurando um Time?</Text>
+                            <Text style={[styles.cardSubtitle, { color: colors.TextoSecundario }]}>Encontre seu Match Ideal!</Text>
                             <TouchableOpacity
-                                style={styles.notificationButton}
-                                    onPress={() => router.push("/grupos/groupdetailspage")}
-                                >
-                                    <Text style={styles.buttonText}>Ver Detalhes do Grupo</Text>
+                                style={[styles.cardButton, { backgroundColor: colors.DestaqueFIAP }]}
+                                onPress={() => handleNavigation('searchpage')}
+                            >
+                                <Text style={styles.buttonText}>Comecar a Buscar</Text>
                             </TouchableOpacity>
+                        </View>
 
+                        <View style={[styles.quickCard, { backgroundColor: colors.FundoCard, borderColor: colors.DestaqueFIAP + '80' }]}>
+                            <Text style={[styles.cardTitle, { color: colors.TextoPrincipal }]}>
+                                {hasNewInvite ? 'Voce tem 1 Novo Convite!' : 'Nenhum Convite Novo'}
+                            </Text>
+                            <Text style={[styles.cardSubtitle, { color: colors.TextoSecundario }]}>
+                                {hasNewInvite ? 'Nao perca tempo!' : 'Seja proativo.'}
+                            </Text>
+                            <TouchableOpacity
+                                style={[styles.cardButton, { backgroundColor: hasNewInvite ? colors.DestaqueFIAP : colors.TextoSecundario }]}
+                                onPress={() => handleNavigation(hasNewInvite ? 'invites' : 'profilepage')}
+                            >
+                                <Text style={styles.buttonText}>{hasNewInvite ? 'Ver Convite' : 'Ver Perfil'}</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+
+                <View style={styles.section}>
+                    <Text style={[styles.sectionTitle, { color: colors.TextoPrincipal }]}>Notificacoes</Text>
+                    {isGroupFormed ? (
+                        <View style={[styles.notificationCard, { backgroundColor: colors.FundoCard, borderColor: colors.DestaqueFIAP }]}>
+                            <Text style={[styles.notificationText, { color: colors.TextoPrincipal }]}>Parabens! Seu Grupo esta Formado!</Text>
+                            <TouchableOpacity
+                                style={[styles.notificationButton, { backgroundColor: colors.DestaqueFIAP }]}
+                                onPress={() => router.push("/grupos/groupdetailspage")}
+                            >
+                                <Text style={styles.buttonText}>Ver Detalhes do Grupo</Text>
+                            </TouchableOpacity>
                         </View>
                     ) : (
-                        <Text style={styles.cardSubtitle}>Nenhuma notificação importante por enquanto.</Text>
+                        <View style={[styles.notificationCard, { backgroundColor: colors.FundoCard, borderColor: colors.DestaqueFIAP }]}>
+                            <Text style={[styles.notificationText, { color: colors.TextoPrincipal }]}>Voce ainda nao esta em um grupo.</Text>
+                            <TouchableOpacity
+                                style={[styles.notificationButton, { backgroundColor: colors.DestaqueFIAP }]}
+                                onPress={() => handleNavigation('searchpage')}
+                            >
+                                <Text style={styles.buttonText}>Buscar Grupo</Text>
+                            </TouchableOpacity>
+                        </View>
                     )}
                 </View>
-                
+
+                <View style={styles.section}>
+                    <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+                        <Text style={styles.logoutText}>Sair da Conta</Text>
+                    </TouchableOpacity>
+                </View>
+
                 <View style={{ height: 50 }} />
-                
+
             </ScrollView>
-            
-            {/* Navegação Inferior */}
-            <View style={[styles.tabBar, { bottom: 0, paddingBottom: Platform.OS === 'ios' ? 24 : 12 }] }>
-                
-                {/* GRUPOS/BUSCA */}
+
+            <View style={[styles.tabBar, { backgroundColor: colors.TabBar, borderColor: colors.DestaqueFIAP }]}>
                 <TouchableOpacity onPress={() => handleNavigation('searchpage')} style={styles.tabItem}>
-                    <Image 
-                        source={require('../assets/images/MaskGrup.png')} 
-                        style={[styles.tabIconImage, { tintColor: Colors.DestaqueFIAP }]} 
-                        resizeMode="contain" 
+                    <Image
+                        source={require('../assets/images/MaskGrup.png')}
+                        style={[styles.tabIconImage, { tintColor: colors.DestaqueFIAP }]}
+                        resizeMode="contain"
                     />
                 </TouchableOpacity>
 
-                {/* abre a lista de conversas */}
                 <TouchableOpacity onPress={() => handleNavigation('conversations')} style={styles.tabItem}>
-                    <Image 
-                        source={require('../assets/images/mensagem.png')} 
-                        style={styles.tabIconImage} 
-                        resizeMode="contain" 
+                    <Image
+                        source={require('../assets/images/mensagem.png')}
+                        style={[styles.tabIconImage, { tintColor: colors.TextoSecundario }]}
+                        resizeMode="contain"
                     />
                 </TouchableOpacity>
-                
-                {/* PERFIL CORRIGIDO */}
+
                 <TouchableOpacity onPress={() => handleNavigation('profilepage')} style={styles.tabItem}>
-                    <Image 
-                        source={require('../assets/images/perfil.png')} 
-                        style={styles.tabIconImage} 
-                        resizeMode="contain" 
+                    <Image
+                        source={require('../assets/images/perfil.png')}
+                        style={[styles.tabIconImage, { tintColor: colors.TextoSecundario }]}
+                        resizeMode="contain"
                     />
                 </TouchableOpacity>
             </View>
-            
-    </SafeAreaView>
+
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
     fullContainer: {
         flex: 1,
-        backgroundColor: Colors.FundoEscuro,
     },
     contentContainer: {
         flexGrow: 1,
     },
-    
-    //  HEADER ESTILOS 
     header: {
-        backgroundColor: Colors.FundoEscuro, 
-        paddingHorizontal: 20, 
-        paddingTop: 10,
-        paddingBottom: 10, 
+        paddingHorizontal: 20,
+        paddingBottom: 10,
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'flex-end', 
-        borderBottomWidth: 1, 
-        borderColor: Colors.DestaqueFIAP,
+        alignItems: 'flex-end',
+        borderBottomWidth: 1,
     },
     headerRight: {
         flexDirection: 'row',
-        alignItems: 'flex-start',
-        position: 'relative',
+        alignItems: 'center',
+        gap: 10,
+    },
+    themeButton: {
+        padding: 8,
     },
     greeting: {
-        fontSize: 30, 
+        fontSize: 30,
         fontWeight: 'bold',
-        color: Colors.TextoClaro,
-        width: '50%',
-        marginBottom: 0, 
+        width: 200,
     },
     headerImage: {
-        width: 150, 
-        height: 100,
-        marginBottom: -30, 
+        width: 100,
+        height: 80,
     },
-    profileIconContainer: {
-        position: 'absolute',
-        top: -20,
-        right: 0, 
-        padding: 5,
-        zIndex: 10,
-    },
-    profileHeaderIcon: {
-        width: 35,
-        height: 35,
-        tintColor: Colors.DestaqueFIAP,
-    },
-
-    // SEÇÕES E CARDS 
     section: {
         padding: 20,
     },
     sectionTitle: {
         fontSize: 25,
         fontWeight: 'bold',
-        color: Colors.TextoClaro,
         marginBottom: 20,
     },
     quickAccessRow: {
-        flexDirection: 'row', 
+        flexDirection: 'row',
         justifyContent: 'space-between',
     },
     quickCard: {
-        width: '48%', 
-        backgroundColor: Colors.CardFundo,
+        width: '48%',
         padding: 10,
         borderRadius: 10,
         borderWidth: 1,
-        borderColor: Colors.DestaqueFIAP + '80',
     },
     cardTitle: {
-        fontSize: 20,
+        fontSize: 18,
         fontWeight: 'bold',
-        color: Colors.TextoClaro,
-        marginBottom: 20,
+        marginBottom: 10,
     },
     cardSubtitle: {
-        fontSize:15,
-        color: Colors.TextoNeutro,
+        fontSize: 14,
         marginBottom: 5,
     },
     cardButton: {
         borderRadius: 8,
-        padding: 15,
+        padding: 12,
         alignItems: 'center',
-        marginTop: 15,
+        marginTop: 10,
     },
     buttonText: {
-        color: Colors.TextoClaro,
+        color: '#FFFFFF',
         fontWeight: 'bold',
+        fontSize: 14,
     },
     notificationCard: {
-        backgroundColor: Colors.CardFundo,
-        padding: 30,
+        padding: 25,
         borderRadius: 10,
-        borderLeftWidth: 5, 
-        borderColor: Colors.DestaqueFIAP,
-        alignItems: 'flex-start',
+        borderLeftWidth: 5,
     },
     notificationText: {
-        fontSize: 25,
+        fontSize: 20,
         fontWeight: 'bold',
-        color: Colors.TextoClaro,
-        marginBottom: 25,
+        marginBottom: 20,
     },
     notificationButton: {
-        backgroundColor: Colors.DestaqueFIAP,
         borderRadius: 8,
-        padding: 20,
+        padding: 15,
         alignItems: 'center',
-        width: '100%', 
+        width: '100%',
     },
-
-    // TAB BAR ESTILOS
+    logoutButton: {
+        borderWidth: 1,
+        borderColor: '#F23064',
+        borderRadius: 8,
+        padding: 15,
+        alignItems: 'center',
+    },
+    logoutText: {
+        color: '#F23064',
+        fontWeight: 'bold',
+        fontSize: 16,
+    },
     tabBar: {
         flexDirection: 'row',
-        //justifyContent: 'space-around',
+        justifyContent: 'space-around',
         paddingVertical: 15,
-        backgroundColor: Colors.CardFundo,
         borderTopWidth: 2,
-        borderColor: Colors.DestaqueFIAP,
-        position: 'absolute', 
-        bottom: -40,
+        position: 'absolute',
+        bottom: 0,
         left: 0,
         right: 0,
+        paddingBottom: Platform.OS === 'ios' ? 24 : 12,
     },
     tabItem: {
         padding: 10,
     },
     tabIconImage: {
-        width: 110,
-        height: 30,
+        width: 28,
+        height: 28,
     },
 });
