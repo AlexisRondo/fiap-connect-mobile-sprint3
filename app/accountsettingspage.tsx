@@ -1,18 +1,10 @@
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Image, SafeAreaView, TextInput, Platform } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity, SafeAreaView, TextInput, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
+import { useAuth } from '../src/contexts/AuthContext';
+import { useTheme } from '../src/contexts/ThemeContext';
 
-// Clean compact account settings page for iPhone 16: reduced paddings, fonts and image size.
-
-const Colors = {
-  FundoEscuro: '#000000',
-  DestaqueFIAP: '#F23064',
-  TextoClaro: '#FFFFFF',
-  TextoNeutro: '#8C8C8C',
-  CardFundo: '#1A1A1A',
-  InputFundo: 'rgba(255, 255, 255, 0.06)',
-};
-
+// Componente reutilizavel para campos editaveis
 interface EditableInputProps {
   label: string;
   value: string;
@@ -20,25 +12,26 @@ interface EditableInputProps {
   secureTextEntry?: boolean;
   keyboardType?: 'default' | 'email-address' | 'numeric';
   showToggle?: boolean;
+  colors: any;
 }
 
-const EditableInput: React.FC<EditableInputProps> = ({ label, value, onChangeText, secureTextEntry, keyboardType, showToggle }) => {
+const EditableInput: React.FC<EditableInputProps> = ({ label, value, onChangeText, secureTextEntry, keyboardType, showToggle, colors }) => {
   const [isSecure, setIsSecure] = useState(!!secureTextEntry);
   return (
     <View style={styles.inputGroup}>
-      <Text style={styles.label}>{label}</Text>
-      <View style={styles.inputWrapper}>
+      <Text style={[styles.label, { color: colors.TextoSecundario }]}>{label}</Text>
+      <View style={[styles.inputWrapper, { backgroundColor: colors.InputFundo, borderColor: colors.InputBorda }]}>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { color: colors.TextoPrincipal }]}
           value={value}
           onChangeText={onChangeText}
           secureTextEntry={isSecure}
           keyboardType={keyboardType}
-          placeholderTextColor={Colors.TextoNeutro}
+          placeholderTextColor={colors.TextoSecundario}
         />
         {showToggle && (
           <TouchableOpacity onPress={() => setIsSecure(!isSecure)} style={styles.toggleButton}>
-            <Text style={{ color: Colors.DestaqueFIAP, fontSize: 14 }}>{isSecure ? '👁️' : '🔒'}</Text>
+            <Text style={{ color: colors.DestaqueFIAP, fontSize: 14 }}>{isSecure ? 'Ver' : 'Ocultar'}</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -48,79 +41,79 @@ const EditableInput: React.FC<EditableInputProps> = ({ label, value, onChangeTex
 
 export default function AccountSettingsPage() {
   const router = useRouter();
-  const [name, setName] = useState('Gabriel Gonçalves');
-  const [email, setEmail] = useState('RM561029@fiap.com');
-  const [phone, setPhone] = useState('(11) 99876-5432');
+  const { user, getRm } = useAuth();
+  const { colors } = useTheme();
+
+  // Dados do usuario logado via Firebase
+  const [name, setName] = useState(getRm() || '');
+  const [email, setEmail] = useState(user?.email || '');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showEmail, setShowEmail] = useState(false);
   const [showPhone, setShowPhone] = useState(false);
 
   const goBack = () => (router.canGoBack() ? router.back() : router.push('/profilepage'));
-  const handleSave = () => alert('Configurações salvas com sucesso!');
-
-
-  type BottomDest = 'searchpage' | 'conversations' | 'profilepage' | 'dashboard';
-  const handleNavigation = (dest: BottomDest) => {
-    router.push((`/${dest}` as unknown) as Parameters<typeof router.push>[0]);
-  };
+  const handleSave = () => alert('Configuracoes salvas com sucesso!');
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={[styles.container, { paddingBottom: 120 }]}> 
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.FundoPrincipal }]}>
+      <ScrollView contentContainerStyle={[styles.container, { paddingBottom: 120 }]}>
         <TouchableOpacity style={styles.backButton} onPress={goBack}>
-          <Text style={styles.backText}>{'< Voltar'}</Text>
+          <Text style={[styles.backText, { color: colors.TextoPrincipal }]}>{'< Voltar'}</Text>
         </TouchableOpacity>
 
-        <Text style={styles.pageTitle}>Configurações da Conta</Text>
+        <Text style={[styles.pageTitle, { color: colors.TextoPrincipal }]}>Configuracoes da Conta</Text>
 
+        {/* Placeholder de foto de perfil */}
         <View style={styles.photoSection}>
-          <View style={styles.profileImageBorder}>
-            <Image source={require('../assets/images/eu2.jpg')} style={styles.profileImage} />
+          <View style={[styles.profileImageBorder, { borderColor: colors.DestaqueFIAP }]}>
+            <View style={[styles.profileImagePlaceholder, { backgroundColor: colors.FundoCard }]}>
+              <Text style={{ fontSize: 40, color: colors.TextoSecundario }}>?</Text>
+            </View>
           </View>
         </View>
 
-        <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>Dados de Acesso</Text>
-          <EditableInput label="Nome Completo" value={name} onChangeText={setName} />
-          <EditableInput label="E-mail Institucional" value={email} onChangeText={setEmail} keyboardType="email-address" />
-          <EditableInput label="Alterar Senha" value={password} onChangeText={setPassword} secureTextEntry showToggle />
+        {/* Secao de dados de acesso */}
+        <View style={[styles.sectionCard, { backgroundColor: colors.FundoCard }]}>
+          <Text style={[styles.sectionTitle, { color: colors.TextoPrincipal }]}>Dados de Acesso</Text>
+          <EditableInput label="Nome / RM" value={name} onChangeText={setName} colors={colors} />
+          <EditableInput label="E-mail Institucional" value={email} onChangeText={setEmail} keyboardType="email-address" colors={colors} />
+          <EditableInput label="Alterar Senha" value={password} onChangeText={setPassword} secureTextEntry showToggle colors={colors} />
         </View>
 
-        <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>Visualização de Contato</Text>
-          <Text style={styles.sectionSubtitle}>Controle quais dados são visíveis após um Match.</Text>
+        {/* Secao de privacidade de contato */}
+        <View style={[styles.sectionCard, { backgroundColor: colors.FundoCard }]}>
+          <Text style={[styles.sectionTitle, { color: colors.TextoPrincipal }]}>Visualizacao de Contato</Text>
+          <Text style={[styles.sectionSubtitle, { color: colors.TextoSecundario }]}>Controle quais dados sao visiveis apos um Match.</Text>
 
           <TouchableOpacity style={styles.privacyOption} onPress={() => setShowEmail(!showEmail)}>
-            <View style={[styles.checkbox, showEmail && styles.checkboxActive]} />
-            <Text style={styles.privacyText}>Tornar E-mail visível</Text>
+            <View style={[styles.checkbox, showEmail && { backgroundColor: colors.DestaqueFIAP, borderColor: colors.DestaqueFIAP }]} />
+            <Text style={[styles.privacyText, { color: colors.TextoPrincipal }]}>Tornar E-mail visivel</Text>
           </TouchableOpacity>
 
-          <EditableInput label="Telefone/WhatsApp" value={phone} onChangeText={setPhone} keyboardType="numeric" />
+          <EditableInput label="Telefone/WhatsApp" value={phone} onChangeText={setPhone} keyboardType="numeric" colors={colors} />
           <TouchableOpacity style={styles.privacyOption} onPress={() => setShowPhone(!showPhone)}>
-            <View style={[styles.checkbox, showPhone && styles.checkboxActive]} />
-            <Text style={styles.privacyText}>Tornar Telefone visível</Text>
+            <View style={[styles.checkbox, showPhone && { backgroundColor: colors.DestaqueFIAP, borderColor: colors.DestaqueFIAP }]} />
+            <Text style={[styles.privacyText, { color: colors.TextoPrincipal }]}>Tornar Telefone visivel</Text>
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-          <Text style={styles.saveButtonText}>SALVAR</Text>
+        {/* Botao salvar */}
+        <TouchableOpacity style={[styles.saveButton, { backgroundColor: colors.DestaqueFIAP }]} onPress={handleSave}>
+          <Text style={styles.saveButtonText}>Salvar Alteracoes</Text>
         </TouchableOpacity>
-
-        <View style={{ height: 48 }} />
       </ScrollView>
 
-      {/* Barra de navegação inferior */}
-      <View style={[styles.bottomNav, { paddingBottom: Platform.OS === 'ios' ? 24 : 12 }]}> 
-        <TouchableOpacity onPress={() => handleNavigation('searchpage')} style={styles.navItem}>
-          <Image source={require('../assets/images/MaskGrup.png')} style={styles.navIconImage} resizeMode="contain" />
+      {/* Navegacao inferior */}
+      <View style={[styles.tabBar, { backgroundColor: colors.TabBar, borderColor: colors.DestaqueFIAP }]}>
+        <TouchableOpacity onPress={() => router.push('/searchpage')} style={styles.tabItem}>
+          <Text style={[styles.tabLabel, { color: colors.TextoSecundario }]}>Buscar</Text>
         </TouchableOpacity>
-
-        <TouchableOpacity onPress={() => handleNavigation('conversations')} style={styles.navItem}>
-          <Image source={require('../assets/images/mensagem.png')} style={styles.navIconImage} resizeMode="contain" />
+        <TouchableOpacity onPress={() => router.push('/conversations')} style={styles.tabItem}>
+          <Text style={[styles.tabLabel, { color: colors.TextoSecundario }]}>Chats</Text>
         </TouchableOpacity>
-
-        <TouchableOpacity onPress={() => handleNavigation('profilepage')} style={styles.navItem}>
-          <Image source={require('../assets/images/perfil.png')} style={styles.navIconImage} resizeMode="contain" />
+        <TouchableOpacity onPress={() => router.push('/profilepage')} style={styles.tabItem}>
+          <Text style={[styles.tabLabel, { color: colors.DestaqueFIAP }]}>Perfil</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -128,156 +121,67 @@ export default function AccountSettingsPage() {
 }
 
 const styles = StyleSheet.create({
-  // Layout
-  safeArea: {
-    flex: 1,
-    backgroundColor: Colors.FundoEscuro,
-  },
-  container: {
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 24,
-  },
-
-  // Header
-  backButton: {
-    paddingVertical: 6,
-    marginBottom: 8,
-  },
-  backText: {
-    color: Colors.TextoClaro,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  pageTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: Colors.TextoClaro,
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-
-  // Profile Photo
-  photoSection: {
+  safeArea: { flex: 1 },
+  container: { paddingHorizontal: 16, paddingTop: 8 },
+  backButton: { paddingVertical: 8, marginBottom: 4 },
+  backText: { fontSize: 14, fontWeight: '600' },
+  pageTitle: { fontSize: 22, fontWeight: 'bold', marginBottom: 16 },
+  photoSection: { alignItems: 'center', marginBottom: 16 },
+  profileImageBorder: { borderWidth: 2, borderRadius: 60, padding: 3 },
+  profileImagePlaceholder: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
   },
-  profileImageBorder: {
-    borderRadius: 48,
-    borderWidth: 2,
-    padding: 2,
-    marginBottom: 8,
-  },
-  profileImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-  },
-
-  // Cards
   sectionCard: {
-    backgroundColor: Colors.CardFundo,
-    padding: 12,
-    borderRadius: 10,
-    marginBottom: 12,
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 14,
   },
-  sectionTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: Colors.DestaqueFIAP,
-    marginBottom: 10,
-  },
-  sectionSubtitle: {
-    fontSize: 13,
-    color: Colors.TextoNeutro,
-    marginBottom: 10,
-  },
-
-  // Inputs
-  inputGroup: {
-    marginBottom: 12,
-  },
-  label: {
-    fontSize: 13,
-    color: Colors.TextoClaro,
-    marginBottom: 6,
-  },
+  sectionTitle: { fontSize: 16, fontWeight: '700', marginBottom: 10 },
+  sectionSubtitle: { fontSize: 12, marginBottom: 10 },
+  inputGroup: { marginBottom: 12 },
+  label: { fontSize: 12, fontWeight: '600', marginBottom: 4 },
   inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.InputFundo,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: Colors.TextoNeutro + '20',
     height: 42,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  input: {
-    color: Colors.TextoClaro,
-    paddingHorizontal: 10,
-    fontSize: 14,
-    flex: 1,
-  },
-  toggleButton: {
-    padding: 8,
-  },
-
-  // Privacy
+  input: { flex: 1, paddingHorizontal: 12, fontSize: 14 },
+  toggleButton: { paddingHorizontal: 10 },
   privacyOption: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 10,
   },
-  privacyText: {
-    color: Colors.TextoNeutro,
-    fontSize: 13,
-    marginLeft: 10,
-  },
   checkbox: {
-    width: 18,
-    height: 18,
+    width: 20,
+    height: 20,
     borderRadius: 4,
-    borderWidth: 2,
-    borderColor: Colors.TextoNeutro,
+    borderWidth: 1.5,
+    borderColor: '#555',
+    marginRight: 10,
   },
-  checkboxActive: {
-    backgroundColor: Colors.DestaqueFIAP,
-    borderColor: Colors.DestaqueFIAP,
-  },
-
-  // Save Button
+  privacyText: { fontSize: 14 },
   saveButton: {
-    backgroundColor: Colors.DestaqueFIAP,
     borderRadius: 8,
-    paddingVertical: 12,
+    padding: 14,
     alignItems: 'center',
-    marginHorizontal: 12,
+    marginTop: 4,
+    marginBottom: 20,
   },
-  saveButtonText: {
-    color: Colors.TextoClaro,
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  // Bottom navigation (shared style with Dashboard)
-  bottomNav: {
+  saveButtonText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 15 },
+  tabBar: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    alignItems: 'center',
-    borderTopWidth: 1,
-    borderColor: Colors.InputFundo,
     paddingVertical: 12,
-    backgroundColor: Colors.FundoEscuro,
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
+    borderTopWidth: 1,
+    paddingBottom: Platform.OS === 'ios' ? 24 : 12,
   },
-  navItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-  },
-  navIconImage: {
-    width: 28,
-    height: 28,
-  },
+  tabItem: { padding: 8 },
+  tabLabel: { fontSize: 13, fontWeight: '600' },
 });
