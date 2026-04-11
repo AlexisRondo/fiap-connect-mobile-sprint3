@@ -1,232 +1,205 @@
 import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Image, SafeAreaView } from 'react-native';
-import { useRouter } from 'expo-router'; 
+import { useRouter } from 'expo-router';
 import React from 'react';
+import { useAuth } from '../src/contexts/AuthContext';
+import { useTheme } from '../src/contexts/ThemeContext';
 
-// Paleta de Cores da FIAP
-const Colors = {
-    FundoEscuro: '#000000',
-    DestaqueFIAP: '#F23064', 
-    TextoClaro: '#FFFFFF',
-    TextoNeutro: '#8C8C8C',
-    CardFundo: '#1A1A1A', 
-};
-
-//  Componente Reutilizável de Item de Menu 
 interface MenuItemProps {
-    iconSource: any;
-    title: string;
-    onPress: () => void;
+    iconSource: any;
+    title: string;
+    onPress: () => void;
+    colors: any;
 }
 
-const MenuItem: React.FC<MenuItemProps> = ({ iconSource, title, onPress }) => (
-    <TouchableOpacity style={styles.menuItem} onPress={onPress}>
-        <Image source={iconSource} style={styles.menuIcon} resizeMode="contain" />
-        <Text style={styles.menuText}>{title}</Text>
-    </TouchableOpacity>
+const MenuItem: React.FC<MenuItemProps> = ({ iconSource, title, onPress, colors }) => (
+    <TouchableOpacity style={[styles.menuItem, { borderColor: colors.TextoSecundario + '30' }]} onPress={onPress}>
+        <Image source={iconSource} style={[styles.menuIcon, { tintColor: colors.DestaqueFIAP }]} resizeMode="contain" />
+        <Text style={[styles.menuText, { color: colors.TextoPrincipal }]}>{title}</Text>
+    </TouchableOpacity>
 );
 
-// Definição de todas as rotas válidas do app
-type AppRoutes = 
-    | "accountsettingspage"
-    | "chat"
-    | "dashboard"
-    | "profilepage"
-    | "skillssetuppage"
-    | "invites"
-    // Componente Principal da Página 
 export default function ProfilePage() {
-    const router = useRouter(); 
-    const userName = "Gabriel Gonçalves";
-    const userEmail = "RM561029@fiap.com";
+    const router = useRouter();
+    const { user, getRm, logout } = useAuth();
+    const { colors, isDark, toggleTheme } = useTheme();
 
-    
-    const handleNavigation = (destination: AppRoutes) => {
-        router.push(`/${destination}` as never); 
-    };
-    
+    const userName = getRm() || 'Aluno';
+    const userEmail = user?.email || 'email@fiap.com.br';
+
     const goBack = () => {
         router.replace('/dashboard');
     };
 
-    return (
-        <SafeAreaView style={styles.safeArea}>
-            <ScrollView style={styles.container}>
-                {/* Botão Voltar */}
-                <TouchableOpacity style={styles.backButton} onPress={goBack}>
-                    <Text style={styles.backText}>{'< Voltar'}</Text>
-                </TouchableOpacity>
+    const handleLogout = async () => {
+        await logout();
+        router.replace('/login');
+    };
 
-                {/* Bloco do Perfil */}
-                <View style={styles.profileCard}> 
-                    {/* Foto de Perfil */}
-                    <View style={styles.profileImageContainer}>
-                        <Image source={require('../assets/images/eu2.jpg')} style={styles.profileImage} />
-                        <TouchableOpacity style={styles.cameraIconContainer}>
-                            <Image source={require('../assets/images/camera.png')} 
-                                        style={styles.cameraIcon} 
-                                        resizeMode="contain" />
-                        </TouchableOpacity>
-                    </View>
+    return (
+        <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.FundoPrincipal }]}>
+            <ScrollView style={[styles.container, { backgroundColor: colors.FundoPrincipal }]}>
+                <TouchableOpacity style={styles.backButton} onPress={goBack}>
+                    <Text style={[styles.backText, { color: colors.TextoPrincipal }]}>{'< Voltar'}</Text>
+                </TouchableOpacity>
 
-                    {/* Dados Básicos */}
-                    <Text style={styles.userName}>{userName}</Text>
-                    <Text style={styles.userEmail}>{userEmail}</Text>
+                <View style={[styles.profileCard, { backgroundColor: colors.FundoCard }]}>
+                    <View style={styles.profileImageContainer}>
+                        <View style={[styles.profileImagePlaceholder, { backgroundColor: colors.DestaqueFIAP + '20' }]}>
+                            <Text style={{ fontSize: 50 }}>👤</Text>
+                        </View>
+                    </View>
 
-                    {/* Divisor */}
-                    <View style={styles.divider} />
+                    <Text style={[styles.userName, { color: colors.TextoPrincipal }]}>{userName}</Text>
+                    <Text style={[styles.userEmail, { color: colors.TextoSecundario }]}>{userEmail}</Text>
 
-                    {/* Menu de Opções */}
-                    <MenuItem 
-                        iconSource={require('../assets/images/perfil.png')} 
-                        title="Conta" 
-                        onPress={() => handleNavigation('accountsettingspage')} 
-                    />
-                    
-                    <MenuItem 
-                        iconSource={require('../assets/images/compentencias.png')} 
-                        title="Competências para o Matchmaking" 
-                        onPress={() => handleNavigation('skillssetuppage')} 
-                    />
-                    
-                </View>
-                
-                {/* Espaçador */}
-                <View style={{ height: 80 }} /> {/* Reduzido de 100 para 80 */}
-            </ScrollView>
+                    <View style={[styles.divider, { backgroundColor: colors.DestaqueFIAP }]} />
 
-            {/* Rodapé */}
-            <View style={styles.footer}>
-                <Text style={styles.footerText}>Connect Fiap</Text>
-                <Image source={require('../assets/images/link.png')} 
-                    style={styles.footerIcon} 
-                    resizeMode="contain" />
-                <Image source={require('../assets/images/Oracle.png')} 
-                    style={styles.footerIcon} 
-                    resizeMode="contain" />
-                <Image source={require('../assets/images/git.png')} 
-                    style={styles.footerIcon} 
-                    resizeMode="contain" />
-                <Text style={styles.footerText}>FIAP</Text>
-            </View>
-        </SafeAreaView>
-    );
+                    <MenuItem
+                        iconSource={require('../assets/images/perfil.png')}
+                        title="Conta"
+                        onPress={() => router.push('/accountsettingspage')}
+                        colors={colors}
+                    />
+
+                    <MenuItem
+                        iconSource={require('../assets/images/compentencias.png')}
+                        title="Competencias para o Matchmaking"
+                        onPress={() => router.push('/skillssetuppage')}
+                        colors={colors}
+                    />
+
+                    <TouchableOpacity
+                        style={[styles.themeToggle, { borderColor: colors.TextoSecundario + '30' }]}
+                        onPress={toggleTheme}
+                    >
+                        <Text style={{ fontSize: 22 }}>{isDark ? '☀️' : '🌙'}</Text>
+                        <Text style={[styles.menuText, { color: colors.TextoPrincipal }]}>
+                            {isDark ? 'Modo Claro' : 'Modo Escuro'}
+                        </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+                        <Text style={styles.logoutText}>Sair da Conta</Text>
+                    </TouchableOpacity>
+                </View>
+
+                <View style={{ height: 80 }} />
+            </ScrollView>
+
+            <View style={[styles.footer, { backgroundColor: colors.FundoPrincipal, borderColor: colors.DestaqueFIAP }]}>
+                <TouchableOpacity onPress={() => router.replace('/searchpage')} style={styles.footerItem}>
+                    <Image source={require('../assets/images/MaskGrup.png')} style={[styles.footerIcon, { tintColor: colors.TextoSecundario }]} resizeMode="contain" />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => router.replace('/conversations')} style={styles.footerItem}>
+                    <Image source={require('../assets/images/mensagem.png')} style={[styles.footerIcon, { tintColor: colors.TextoSecundario }]} resizeMode="contain" />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => router.replace('/profilepage')} style={styles.footerItem}>
+                    <Image source={require('../assets/images/perfil.png')} style={[styles.footerIcon, { tintColor: colors.DestaqueFIAP }]} resizeMode="contain" />
+                </TouchableOpacity>
+            </View>
+        </SafeAreaView>
+    );
 }
 
 const styles = StyleSheet.create({
-    safeArea: {
-        flex: 1,
-        backgroundColor: Colors.FundoEscuro,
-    },
-    container: { 
-        flex: 1,
-        backgroundColor: Colors.FundoEscuro,
-        paddingTop: 8, 
-    },
-    
-    // --- Botão Voltar ---
-    backButton: {
-        paddingHorizontal: 20, 
-        paddingVertical: 8, 
-        marginBottom: 8, 
-    },
-    backText: {
-        color: Colors.TextoClaro,
-        fontSize: 14, 
-        fontWeight: '600',
-    },
-
-    // --- Bloco do Perfil ---
-    profileCard: {
-        backgroundColor: Colors.CardFundo,
-        marginHorizontal: 16, 
-        borderRadius: 12, 
-        padding: 16, 
-        alignItems: 'center',
-        marginBottom: 8, 
-    },
-    profileImageContainer: {
-        marginBottom: 4,
-        alignItems: 'center',
-    },
-    profileImage: {
-        width: 150, 
-        height: 150, 
-        borderRadius: 75,
-        marginBottom: 4,
-    },
-    cameraIconContainer: {
-        position: 'absolute',
-        bottom: 10, 
-        right: 10, 
-        backgroundColor: Colors.DestaqueFIAP,
-        borderRadius: 20, 
-        width: 30, 
-        height: 30, 
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderWidth: 2,
-        borderColor: Colors.TextoClaro,
-    },
-    cameraIcon: {
-        width: 15, 
-        height: 15, 
-        bottom: 0, 
-    },
-    userName: {
-        fontSize: 18, 
-        fontWeight: 'bold',
-        color: Colors.TextoClaro,
-    },
-    userEmail: {
-        fontSize: 13, 
-        color: Colors.TextoNeutro,
-        marginBottom: 8, 
-    },
-    divider: {
-        height: 1,
-        backgroundColor: Colors.DestaqueFIAP,
-        width: '90%',
-        marginVertical: 16, 
-    },
-
-    // --- Itens de Menu ---
-    menuItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        width: '100%',
-        paddingVertical: 50, 
-        borderBottomWidth: 0.5,
-        borderColor: Colors.TextoNeutro + '30',
-    },
-    menuIcon: {
-        width: 30, 
-        height: 30, 
-        marginRight: 12, 
-        tintColor: Colors.DestaqueFIAP,
-    },
-    menuText: {
-        fontSize: 16, 
-        color: Colors.TextoClaro,
-        fontWeight: '600',
-    },
-
-    // --- Rodapé ---
-    footer: {
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        alignItems: 'center',
-        paddingVertical: 17, 
-        backgroundColor: Colors.FundoEscuro,
-        borderTopWidth: 1,
-        borderColor: Colors.DestaqueFIAP,
-    },
-    footerIcon: {
-        width: 20, 
-        height: 20, 
-        tintColor: Colors.DestaqueFIAP, 
-    },
-    footerText: {
-        color: Colors.TextoNeutro,
-        fontSize: 11, 
-    },
-}); 
+    safeArea: {
+        flex: 1,
+    },
+    container: {
+        flex: 1,
+        paddingTop: 8,
+    },
+    backButton: {
+        paddingHorizontal: 20,
+        paddingVertical: 8,
+        marginBottom: 8,
+    },
+    backText: {
+        fontSize: 14,
+        fontWeight: '600',
+    },
+    profileCard: {
+        marginHorizontal: 16,
+        borderRadius: 12,
+        padding: 16,
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+    profileImageContainer: {
+        marginBottom: 4,
+        alignItems: 'center',
+    },
+    profileImagePlaceholder: {
+        width: 120,
+        height: 120,
+        borderRadius: 60,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    userName: {
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
+    userEmail: {
+        fontSize: 13,
+        marginBottom: 8,
+    },
+    divider: {
+        height: 1,
+        width: '90%',
+        marginVertical: 16,
+    },
+    menuItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        width: '100%',
+        paddingVertical: 20,
+        borderBottomWidth: 0.5,
+    },
+    menuIcon: {
+        width: 30,
+        height: 30,
+        marginRight: 12,
+    },
+    menuText: {
+        fontSize: 16,
+        fontWeight: '600',
+    },
+    themeToggle: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        width: '100%',
+        paddingVertical: 20,
+        borderBottomWidth: 0.5,
+        gap: 12,
+    },
+    logoutButton: {
+        borderWidth: 1,
+        borderColor: '#F23064',
+        borderRadius: 8,
+        padding: 15,
+        alignItems: 'center',
+        width: '100%',
+        marginTop: 20,
+    },
+    logoutText: {
+        color: '#F23064',
+        fontWeight: 'bold',
+        fontSize: 16,
+    },
+    footer: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        alignItems: 'center',
+        paddingVertical: 17,
+        borderTopWidth: 1,
+    },
+    footerItem: {
+        padding: 10,
+    },
+    footerIcon: {
+        width: 22,
+        height: 22,
+    },
+});
