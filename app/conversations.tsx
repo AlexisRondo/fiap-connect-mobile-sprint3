@@ -10,31 +10,24 @@ import {
   Image,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { chats } from "./chats"; 
+import { chats } from "./chats";
+import { useTheme } from "../src/contexts/ThemeContext";
 
-const Colors = {
-  FundoEscuro: "#000000",
-  DestaqueFIAP: "#F23064",
-  TextoClaro: "#FFFFFF",
-  TextoNeutro: "#8C8C8C",
-  LinhaDiv: "#2a2a2a",
-};
+// Tipagem de cada item de conversa
+interface ChatItem {
+  id: string;
+  name: string;
+  lastMessage: string;
+  lastTime: string;
+  avatar: any;
+}
 
 export default function ConversationsScreen() {
   const router = useRouter();
+  const { colors } = useTheme();
   const [search, setSearch] = useState("");
 
-  
-  interface ChatItem {
-    id: string;
-    name: string;
-    lastMessage: string;
-    lastTime: string;
-    avatar: any;
-  }
-  
-
-  // filtro de busca
+  // Filtra conversas com base na busca do usuario
   const filteredChats = useMemo<ChatItem[]>(() => {
     if (!search.trim()) return chats as ChatItem[];
     return (chats as ChatItem[]).filter((c: ChatItem) =>
@@ -42,20 +35,14 @@ export default function ConversationsScreen() {
     );
   }, [search]);
 
-  // botão voltar no topo
   const handleBack = useCallback(() => {
-    // aqui você controla ONDE quer voltar
-    // se essa tela de conversas faz parte da navegação principal,
-    // e você quer voltar pro dashboard:
     router.replace("/dashboard");
-    // se quiser só "voltar 1 tela":
-    // router.back();
   }, [router]);
 
-  // abrir chat individual
+  // Abre a conversa individual baseado no id
   const openChat = useCallback(
     (id: string) => {
-      // Mapeamento de IDs para rotas específicas (agora dentro da pasta conversas)
+      // Mapeamento de IDs para rotas das conversas existentes
       const chatRoutes: { [key: string]: string } = {
         'conexao-anjo': '/conversas/conversagrupanjo',
         'gabriel-furlan': '/conversas/conversagabriel',
@@ -65,63 +52,57 @@ export default function ConversationsScreen() {
         'via-mobility': '/conversas/conversaviamobility'
       };
 
-      // Se houver uma rota específica para este ID, use-a
       if (chatRoutes[id]) {
         router.push((chatRoutes[id] as unknown) as Parameters<typeof router.push>[0]);
         return;
       }
 
-      // Fallback para rota genérica
       router.push((`/chat/${id}` as unknown) as Parameters<typeof router.push>[0]);
     },
     [router]
   );
 
-  // render de cada conversa na lista
+  // Renderiza cada conversa na lista
   const renderItem = ({ item }: { item: ChatItem }) => (
     <TouchableOpacity
-      style={styles.chatRow}
+      style={[styles.chatRow, { backgroundColor: colors.FundoPrincipal }]}
       onPress={() => openChat(item.id)}
       activeOpacity={0.7}
     >
       <View style={styles.chatLeft}>
-        {/* se não houver avatar, usa o placeholder perfil.png */}
-        <Image source={item.avatar ? item.avatar : require('../assets/images/perfil.png')} style={styles.avatar} />
-
+        <Image
+          source={item.avatar ? item.avatar : require('../assets/images/perfil.png')}
+          style={styles.avatar}
+        />
         <View style={styles.chatTextContainer}>
-          <Text style={styles.chatName}>{item.name}</Text>
-          <Text style={styles.chatLastMsg} numberOfLines={1}>
+          <Text style={[styles.chatName, { color: colors.TextoPrincipal }]}>{item.name}</Text>
+          <Text style={[styles.chatLastMsg, { color: colors.TextoSecundario }]} numberOfLines={1}>
             {item.lastMessage}
           </Text>
         </View>
       </View>
-
-      <Text style={styles.chatTime}>{item.lastTime}</Text>
+      <Text style={[styles.chatTime, { color: colors.TextoPrincipal }]}>{item.lastTime}</Text>
     </TouchableOpacity>
   );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      {/* Header + busca */}
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.FundoPrincipal }]}>
+      {/* Header com botao voltar e titulo */}
       <View style={styles.header}>
-        {/* botão voltar */}
         <TouchableOpacity onPress={handleBack} hitSlop={15}>
-          <Text style={styles.backArrow}>{"<"}</Text>
+          <Text style={[styles.backArrow, { color: colors.DestaqueFIAP }]}>{"<"}</Text>
         </TouchableOpacity>
-
-        <Text style={styles.title}>Conversas</Text>
-
-        {/* só pra ocupar espaço e centralizar o título */}
+        <Text style={[styles.title, { color: colors.TextoPrincipal }]}>Conversas</Text>
         <View style={{ width: 24 }} />
       </View>
 
+      {/* Campo de busca */}
       <View style={styles.searchWrapper}>
-        <View style={styles.searchBox}>
-          <Text style={styles.searchIcon}>🔍</Text>
+        <View style={[styles.searchBox, { backgroundColor: colors.FundoCard }]}>
           <TextInput
             placeholder="Pesquise..."
-            placeholderTextColor={Colors.TextoNeutro}
-            style={styles.searchInput}
+            placeholderTextColor={colors.TextoSecundario}
+            style={[styles.searchInput, { color: colors.TextoPrincipal }]}
             value={search}
             onChangeText={setSearch}
           />
@@ -133,51 +114,44 @@ export default function ConversationsScreen() {
         data={filteredChats}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
-        style={styles.list}
+        style={[styles.list, { backgroundColor: colors.FundoPrincipal }]}
         ItemSeparatorComponent={() => (
-          <View style={{ height: 1, backgroundColor: Colors.LinhaDiv }} />
+          <View style={{ height: 1, backgroundColor: colors.Divisor }} />
         )}
       />
 
-      {/* Bottom nav fixo */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity onPress={() => router.replace('/dashboard')} style={styles.navItem}>
+      {/* Navegacao inferior */}
+      <View style={[styles.bottomNav, { backgroundColor: colors.FundoPrincipal, borderColor: colors.Divisor }]}>
+        <TouchableOpacity onPress={() => router.replace('/searchpage')} style={styles.navItem}>
           <Image
             source={require('../assets/images/MaskGrup.png')}
-            style={[styles.navIconImage, { tintColor: Colors.DestaqueFIAP }]}
+            style={[styles.navIconImage, { tintColor: colors.TextoSecundario }]}
             resizeMode="contain"
           />
         </TouchableOpacity>
-
         <TouchableOpacity onPress={() => router.replace('/conversations')} style={styles.navItem}>
           <Image
             source={require('../assets/images/mensagem.png')}
-            style={styles.navIconImage}
+            style={[styles.navIconImage, { tintColor: colors.DestaqueFIAP }]}
             resizeMode="contain"
           />
         </TouchableOpacity>
-
         <TouchableOpacity onPress={() => router.replace('/profilepage')} style={styles.navItem}>
           <Image
             source={require('../assets/images/perfil.png')}
-            style={styles.navIconImage}
+            style={[styles.navIconImage, { tintColor: colors.TextoSecundario }]}
             resizeMode="contain"
           />
         </TouchableOpacity>
       </View>
-
-      
     </SafeAreaView>
   );
 }
 
-// estilos
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: Colors.FundoEscuro,
   },
-
   header: {
     paddingHorizontal: 16,
     paddingTop: 8,
@@ -186,116 +160,79 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
-
   backArrow: {
-    color: Colors.DestaqueFIAP,
     fontSize: 20,
     fontWeight: "600",
     width: 24,
     textAlign: "left",
   },
-
   title: {
-    color: Colors.TextoClaro,
     fontSize: 22,
     fontWeight: "600",
   },
-
   searchWrapper: {
     paddingHorizontal: 16,
     paddingBottom: 12,
   },
-
   searchBox: {
-    backgroundColor: "#1a1a1a",
     borderRadius: 999,
     paddingVertical: 10,
     paddingHorizontal: 12,
     flexDirection: "row",
     alignItems: "center",
   },
-
-  searchIcon: {
-    color: Colors.DestaqueFIAP,
-    fontSize: 16,
-    marginRight: 8,
-  },
-
   searchInput: {
     flex: 1,
-    color: Colors.TextoClaro,
     fontSize: 16,
   },
-
   list: {
     flex: 1,
-    backgroundColor: Colors.FundoEscuro,
   },
-
   chatRow: {
     paddingVertical: 14,
     paddingHorizontal: 16,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: Colors.FundoEscuro,
   },
-
   chatLeft: {
     flexDirection: "row",
     alignItems: "center",
     flexShrink: 1,
     paddingRight: 12,
   },
-
   avatar: {
     width: 36,
     height: 36,
     borderRadius: 18,
     marginRight: 12,
   },
-
   chatTextContainer: {
     flexShrink: 1,
   },
-
   chatName: {
-    color: Colors.TextoClaro,
     fontSize: 16,
     fontWeight: "600",
     marginBottom: 2,
   },
-
   chatLastMsg: {
-    color: Colors.TextoNeutro,
     fontSize: 14,
   },
-
   chatTime: {
-    color: Colors.TextoClaro,
     fontSize: 12,
     fontWeight: "400",
   },
-
   bottomNav: {
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
     borderTopWidth: 1,
-    borderColor: Colors.LinhaDiv,
     paddingVertical: 12,
-    backgroundColor: Colors.FundoEscuro,
   },
-
   navItem: {
     alignItems: "center",
     justifyContent: "center",
     flex: 1,
-  },
-  navIcon: {
-    fontSize: 22,
-    color: Colors.DestaqueFIAP,
-    textAlign: "center",
   },
   navIconImage: {
     width: 26,
