@@ -1,63 +1,59 @@
 import { StyleSheet, Text, View, Image } from "react-native";
-import { useRouter } from "expo-router"; 
-import { useEffect } from "react"; 
-import { StatusBar } from "expo-status-bar"; 
-import { Stack } from "expo-router" 
+import { useRouter } from "expo-router";
+import { useEffect } from "react";
+import { StatusBar } from "expo-status-bar";
 import React from "react";
-
-const Colors = {
-    FundoEscuro: "#000000",        
-    DestaqueFIAP: "#F23064",    
-};
+import { useAuth } from "../src/contexts/AuthContext";
 
 export default function Index() {
-    const router = useRouter(); 
+    const router = useRouter();
+    const { user, loading } = useAuth();
 
-    
-useEffect(() => {
-    const timer = setTimeout(() => {
-          router.replace("/login"); 
-    }, 5000); 
+    // Aguarda o Firebase verificar a sessao e redireciona
+    useEffect(() => {
+        if (loading) return;
+
+        const timer = setTimeout(() => {
+            if (user) {
+                // Usuario ja logado, vai direto pro dashboard
+                router.replace("/dashboard");
+            } else {
+                // Sem sessao ativa, vai pro login
+                router.replace("/login");
+            }
+        }, 2000);
 
         return () => clearTimeout(timer);
-     }, []);
+    }, [loading, user]);
 
-    
     return (
-
-        <>
-            <Stack.Screen options={{ headerShown: false }} />
-            <View style={Styles.container}>
-                <Image
-                    source={require("../assets/images/MaskGrup.png")} 
-                    style={Styles.logo}
-                />
-                
-                <Text style={Styles.text}>Fiap Connect</Text>
-                
-                <StatusBar style="light" /> 
-            </View>
-        </>
+        <View style={styles.container}>
+            <Image
+                source={require("../assets/images/MaskGrup.png")}
+                style={styles.logo}
+            />
+            <Text style={styles.text}>Fiap Connect</Text>
+            <StatusBar style="light" />
+        </View>
     );
 }
 
-const Styles = StyleSheet.create({
+const styles = StyleSheet.create({
     container: {
-        flex: 4,
-        backgroundColor: Colors.FundoEscuro, 
-        justifyContent: "center", 
+        flex: 1,
+        backgroundColor: '#000000',
+        justifyContent: "center",
         alignItems: "center",
     },
     logo: {
-        width: 300, 
-        height:200,
-        marginBottom: 20, 
+        width: 300,
+        height: 200,
+        marginBottom: 20,
     },
     text: {
-        color: Colors.DestaqueFIAP, 
-        fontSize: 50, 
+        color: '#F23064',
+        fontSize: 50,
         fontWeight: "500",
         marginTop: -50,
-        marginLeft: -0,
     },
 });
