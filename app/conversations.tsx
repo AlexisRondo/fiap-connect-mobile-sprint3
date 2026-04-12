@@ -1,93 +1,26 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useCallback } from "react";
 import {
   View,
   Text,
   StyleSheet,
   SafeAreaView,
-  TextInput,
-  FlatList,
   TouchableOpacity,
   Image,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { chats } from "./chats";
 import { useTheme } from "../src/contexts/ThemeContext";
-
-// Tipagem de cada item de conversa
-interface ChatItem {
-  id: string;
-  name: string;
-  lastMessage: string;
-  lastTime: string;
-  avatar: any;
-}
 
 export default function ConversationsScreen() {
   const router = useRouter();
   const { colors } = useTheme();
-  const [search, setSearch] = useState("");
-
-  // Filtra conversas com base na busca do usuario
-  const filteredChats = useMemo<ChatItem[]>(() => {
-    if (!search.trim()) return chats as ChatItem[];
-    return (chats as ChatItem[]).filter((c: ChatItem) =>
-      c.name.toLowerCase().includes(search.trim().toLowerCase())
-    );
-  }, [search]);
 
   const handleBack = useCallback(() => {
     router.replace("/dashboard");
   }, [router]);
 
-  // Abre a conversa individual baseado no id
-  const openChat = useCallback(
-    (id: string) => {
-      // Mapeamento de IDs para rotas das conversas existentes
-      const chatRoutes: { [key: string]: string } = {
-        'conexao-anjo': '/conversas/conversagrupanjo',
-        'gabriel-furlan': '/conversas/conversagabriel',
-        'marco-volpi': '/conversas/conversamarco',
-        'matheus-silva': '/conversas/conversamatheus',
-        'cleiton-de-souza': '/conversas/conversacleiton',
-        'via-mobility': '/conversas/conversaviamobility'
-      };
-
-      if (chatRoutes[id]) {
-        router.push((chatRoutes[id] as unknown) as Parameters<typeof router.push>[0]);
-        return;
-      }
-
-      router.push((`/chat/${id}` as unknown) as Parameters<typeof router.push>[0]);
-    },
-    [router]
-  );
-
-  // Renderiza cada conversa na lista
-  const renderItem = ({ item }: { item: ChatItem }) => (
-    <TouchableOpacity
-      style={[styles.chatRow, { backgroundColor: colors.FundoPrincipal }]}
-      onPress={() => openChat(item.id)}
-      activeOpacity={0.7}
-    >
-      <View style={styles.chatLeft}>
-        <Image
-          source={item.avatar ? item.avatar : require('../assets/images/perfil.png')}
-          style={styles.avatar}
-        />
-        <View style={styles.chatTextContainer}>
-          <Text style={[styles.chatName, { color: colors.TextoPrincipal }]}>{item.name}</Text>
-          <Text style={[styles.chatLastMsg, { color: colors.TextoSecundario }]} numberOfLines={1}>
-            {item.lastMessage}
-          </Text>
-        </View>
-      </View>
-      <Text style={[styles.chatTime, { color: colors.TextoPrincipal }]}>{item.lastTime}</Text>
-    </TouchableOpacity>
-  );
-
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.FundoPrincipal }]}>
-      {/* Header com botao voltar e titulo */}
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={handleBack} hitSlop={15}>
           <Text style={[styles.backArrow, { color: colors.DestaqueFIAP }]}>{"<"}</Text>
@@ -96,29 +29,30 @@ export default function ConversationsScreen() {
         <View style={{ width: 24 }} />
       </View>
 
-      {/* Campo de busca */}
-      <View style={styles.searchWrapper}>
-        <View style={[styles.searchBox, { backgroundColor: colors.FundoCard }]}>
-          <TextInput
-            placeholder="Pesquise..."
-            placeholderTextColor={colors.TextoSecundario}
-            style={[styles.searchInput, { color: colors.TextoPrincipal }]}
-            value={search}
-            onChangeText={setSearch}
+      {/* Estado vazio */}
+      <View style={styles.emptyContainer}>
+        <View style={[styles.emptyIconCircle, { backgroundColor: colors.FundoCard }]}>
+          <Image
+            source={require('../assets/images/mensagem.png')}
+            style={[styles.emptyIcon, { tintColor: colors.DestaqueFIAP }]}
+            resizeMode="contain"
           />
         </View>
-      </View>
 
-      {/* Lista de conversas */}
-      <FlatList
-        data={filteredChats}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        style={[styles.list, { backgroundColor: colors.FundoPrincipal }]}
-        ItemSeparatorComponent={() => (
-          <View style={{ height: 1, backgroundColor: colors.Divisor }} />
-        )}
-      />
+        <Text style={[styles.emptyTitle, { color: colors.TextoPrincipal }]}>
+          Nenhuma conversa ainda
+        </Text>
+        <Text style={[styles.emptySubtitle, { color: colors.TextoSecundario }]}>
+          Suas conversas com membros de grupo aparecerão aqui após entrar em um grupo pelo matchmaking.
+        </Text>
+
+        <TouchableOpacity
+          style={[styles.searchButton, { backgroundColor: colors.DestaqueFIAP }]}
+          onPress={() => router.push('/searchpage')}
+        >
+          <Text style={styles.searchButtonText}>Buscar Grupos</Text>
+        </TouchableOpacity>
+      </View>
 
       {/* Navegacao inferior */}
       <View style={[styles.bottomNav, { backgroundColor: colors.FundoPrincipal, borderColor: colors.Divisor }]}>
@@ -170,57 +104,45 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "600",
   },
-  searchWrapper: {
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-  },
-  searchBox: {
-    borderRadius: 999,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  searchInput: {
+  emptyContainer: {
     flex: 1,
-    fontSize: 16,
-  },
-  list: {
-    flex: 1,
-  },
-  chatRow: {
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    flexDirection: "row",
+    justifyContent: "center",
     alignItems: "center",
-    justifyContent: "space-between",
+    paddingHorizontal: 40,
   },
-  chatLeft: {
-    flexDirection: "row",
+  emptyIconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    justifyContent: "center",
     alignItems: "center",
-    flexShrink: 1,
-    paddingRight: 12,
+    marginBottom: 20,
   },
-  avatar: {
+  emptyIcon: {
     width: 36,
     height: 36,
-    borderRadius: 18,
-    marginRight: 12,
   },
-  chatTextContainer: {
-    flexShrink: 1,
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    marginBottom: 10,
+    textAlign: "center",
   },
-  chatName: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 2,
-  },
-  chatLastMsg: {
+  emptySubtitle: {
     fontSize: 14,
+    textAlign: "center",
+    lineHeight: 20,
+    marginBottom: 24,
   },
-  chatTime: {
-    fontSize: 12,
-    fontWeight: "400",
+  searchButton: {
+    borderRadius: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 30,
+  },
+  searchButtonText: {
+    color: "#FFFFFF",
+    fontWeight: "bold",
+    fontSize: 15,
   },
   bottomNav: {
     flexDirection: "row",
