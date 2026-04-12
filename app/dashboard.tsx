@@ -182,7 +182,7 @@ export default function DashboardPage() {
                   styles.notificationButton,
                   { backgroundColor: colors.DestaqueFIAP },
                 ]}
-                onPress={() => router.push("/grupos/groupdetailspage")}
+                onPress={() => handleNavigation("searchpage")}
               >
                 <Text style={styles.buttonText}>Ver Detalhes do Grupo</Text>
               </TouchableOpacity>
