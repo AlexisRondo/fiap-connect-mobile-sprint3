@@ -122,7 +122,7 @@ export default function AccountSettingsPage() {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
-  container: { paddingHorizontal: 16, paddingTop: 8 },
+  container: { paddingHorizontal: 16, paddingTop: 40 },
   backButton: { paddingVertical: 8, marginBottom: 4 },
   backText: { fontSize: 14, fontWeight: '600' },
   pageTitle: { fontSize: 22, fontWeight: 'bold', marginBottom: 16 },

@@ -19,7 +19,7 @@ export default function DashboardPage() {
   const { colors, isDark, toggleTheme } = useTheme();
 
   const userName = getRm() || "Aluno";
-  const hasNewInvite = true;
+  const hasNewInvite = false;
   const isGroupFormed = false;
 
   type Destination =

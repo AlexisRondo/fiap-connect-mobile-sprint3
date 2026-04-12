@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: 16,
-    paddingTop: 8,
+    paddingTop: 40,
     paddingBottom: 12,
     flexDirection: "row",
     alignItems: "center",

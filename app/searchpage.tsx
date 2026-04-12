@@ -1,48 +1,83 @@
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Image, SafeAreaView, ActivityIndicator } from 'react-native';
-import { useRouter } from 'expo-router';
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { useAuth } from '../src/contexts/AuthContext';
-import { useTheme } from '../src/contexts/ThemeContext';
-import { buscarGruposCompativeis, GrupoCompativel } from '../src/services/apexApi';
+import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "expo-router";
+import React from "react";
+import {
+  ActivityIndicator,
+  Image,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { useAuth } from "../src/contexts/AuthContext";
+import { useTheme } from "../src/contexts/ThemeContext";
+import {
+  GrupoCompativel,
+  buscarGruposCompativeis,
+} from "../src/services/apexApi";
 
-const GruposIcon = require('../assets/images/MaskGrup.png');
+const GruposIcon = require("../assets/images/MaskGrup.png");
 
 export default function SearchPage() {
   const router = useRouter();
   const { getRm } = useAuth();
   const { colors } = useTheme();
-  const rm = getRm() || '';
+  const rm = getRm() || "";
 
-  const { data: grupos, isLoading, error, refetch } = useQuery({
-    queryKey: ['grupos-compativeis', rm],
+  const {
+    data: grupos,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["grupos-compativeis", rm],
     queryFn: () => buscarGruposCompativeis(rm),
     enabled: !!rm,
   });
 
   const goBack = () => {
-    router.replace('/dashboard');
+    router.replace("/dashboard");
   };
 
   const getCompatibilidadeCor = (percentual: number): string => {
-    if (percentual >= 80) return '#27AE60';
-    if (percentual >= 50) return '#F39C12';
-    return '#E74C3C';
+    if (percentual >= 80) return "#27AE60";
+    if (percentual >= 50) return "#F39C12";
+    return "#E74C3C";
   };
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.FundoPrincipal }]}>
-      <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
-
-        <View style={[styles.topBar, { backgroundColor: colors.FundoCard, borderColor: colors.DestaqueFIAP + '30' }]}>
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: colors.FundoPrincipal }]}
+    >
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={{ paddingBottom: 40 }}
+      >
+        <View
+          style={[
+            styles.topBar,
+            {
+              backgroundColor: colors.FundoCard,
+              borderColor: colors.DestaqueFIAP + "30",
+            },
+          ]}
+        >
           <TouchableOpacity style={styles.backButton} onPress={goBack}>
-            <Text style={[styles.backText, { color: colors.DestaqueFIAP }]}>{'< Voltar'}</Text>
+            <Text style={[styles.backText, { color: colors.DestaqueFIAP }]}>
+              {"< Voltar"}
+            </Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.header}>
-          <Text style={[styles.headerTitle, { color: colors.TextoPrincipal }]}>Buscar Grupos</Text>
-          <Text style={[styles.headerSubtitle, { color: colors.TextoSecundario }]}>
+          <Text style={[styles.headerTitle, { color: colors.TextoPrincipal }]}>
+            Buscar Grupos
+          </Text>
+          <Text
+            style={[styles.headerSubtitle, { color: colors.TextoSecundario }]}
+          >
             Grupos compativeis com suas habilidades ({rm})
           </Text>
         </View>
@@ -50,14 +85,33 @@ export default function SearchPage() {
         {isLoading && (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={colors.DestaqueFIAP} />
-            <Text style={[styles.loadingText, { color: colors.TextoSecundario }]}>Buscando grupos...</Text>
+            <Text
+              style={[styles.loadingText, { color: colors.TextoSecundario }]}
+            >
+              Buscando grupos...
+            </Text>
           </View>
         )}
 
         {error && (
           <View style={styles.errorContainer}>
-            <Text style={[styles.errorText, { color: colors.DestaqueFIAP }]}>Erro ao buscar grupos.</Text>
-            <TouchableOpacity style={[styles.retryButton, { backgroundColor: colors.DestaqueFIAP }]} onPress={() => refetch()}>
+            <Text style={[styles.errorText, { color: colors.DestaqueFIAP }]}>
+              Erro: {error.message}
+            </Text>
+            <Text style={[styles.errorText, { color: colors.TextoSecundario }]}>
+              RM: {rm}
+            </Text>
+            <Text style={[styles.errorText, { color: colors.TextoSecundario }]}>
+              {JSON.stringify((error as any)?.config?.url || "sem url")}
+            </Text>
+
+            <TouchableOpacity
+              style={[
+                styles.retryButton,
+                { backgroundColor: colors.DestaqueFIAP },
+              ]}
+              onPress={() => refetch()}
+            >
               <Text style={styles.retryText}>Tentar Novamente</Text>
             </TouchableOpacity>
           </View>
@@ -76,30 +130,85 @@ export default function SearchPage() {
             {grupos.map((grupo: GrupoCompativel) => (
               <View
                 key={grupo.id_grupo}
-                style={[styles.resultCard, { backgroundColor: colors.FundoCard, borderColor: getCompatibilidadeCor(grupo.percentual_compatibilidade) }]}
+                style={[
+                  styles.resultCard,
+                  {
+                    backgroundColor: colors.FundoCard,
+                    borderColor: getCompatibilidadeCor(
+                      grupo.percentual_compatibilidade,
+                    ),
+                  },
+                ]}
               >
                 <View style={styles.cardHeader}>
-                  <View style={[styles.logoContainer, { backgroundColor: colors.FundoPrincipal }]}>
-                    <Image source={GruposIcon} style={[styles.resultLogo, { tintColor: colors.DestaqueFIAP }]} resizeMode="contain" />
+                  <View
+                    style={[
+                      styles.logoContainer,
+                      { backgroundColor: colors.FundoPrincipal },
+                    ]}
+                  >
+                    <Image
+                      source={GruposIcon}
+                      style={[
+                        styles.resultLogo,
+                        { tintColor: colors.DestaqueFIAP },
+                      ]}
+                      resizeMode="contain"
+                    />
                   </View>
                   <View style={styles.cardHeaderText}>
-                    <Text style={[styles.cardTitle, { color: colors.TextoPrincipal }]}>{grupo.nome_grupo}</Text>
-                    <Text style={[styles.cardStatus, { color: colors.TextoSecundario }]}>{grupo.status_grupo}</Text>
+                    <Text
+                      style={[
+                        styles.cardTitle,
+                        { color: colors.TextoPrincipal },
+                      ]}
+                    >
+                      {grupo.nome_grupo}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.cardStatus,
+                        { color: colors.TextoSecundario },
+                      ]}
+                    >
+                      {grupo.status_grupo}
+                    </Text>
                   </View>
-                  <View style={[styles.compatBadge, { backgroundColor: getCompatibilidadeCor(grupo.percentual_compatibilidade) }]}>
-                    <Text style={styles.compatText}>{grupo.percentual_compatibilidade}%</Text>
+                  <View
+                    style={[
+                      styles.compatBadge,
+                      {
+                        backgroundColor: getCompatibilidadeCor(
+                          grupo.percentual_compatibilidade,
+                        ),
+                      },
+                    ]}
+                  >
+                    <Text style={styles.compatText}>
+                      {grupo.percentual_compatibilidade}%
+                    </Text>
                   </View>
                 </View>
 
-                <Text style={[styles.cardDescription, { color: colors.TextoSecundario }]} numberOfLines={2}>
+                <Text
+                  style={[
+                    styles.cardDescription,
+                    { color: colors.TextoSecundario },
+                  ]}
+                  numberOfLines={2}
+                >
                   {grupo.descricao_projeto}
                 </Text>
 
                 <View style={styles.cardInfo}>
-                  <Text style={[styles.infoText, { color: colors.TextoSecundario }]}>
+                  <Text
+                    style={[styles.infoText, { color: colors.TextoSecundario }]}
+                  >
                     Membros: {grupo.total_membros}/{grupo.max_integrantes}
                   </Text>
-                  <Text style={[styles.infoText, { color: colors.TextoSecundario }]}>
+                  <Text
+                    style={[styles.infoText, { color: colors.TextoSecundario }]}
+                  >
                     Vagas: {grupo.vagas_disponiveis}
                   </Text>
                 </View>
@@ -107,18 +216,46 @@ export default function SearchPage() {
             ))}
           </View>
         )}
-
       </ScrollView>
 
-      <View style={[styles.footer, { backgroundColor: colors.TabBar, borderColor: colors.DestaqueFIAP + '40' }]}>
-        <TouchableOpacity onPress={() => router.replace('/dashboard')} style={styles.footerItem}>
-          <Image source={require('../assets/images/MaskGrup.png')} style={[styles.footerIcon, { tintColor: colors.DestaqueFIAP }]} resizeMode="contain" />
+      <View
+        style={[
+          styles.footer,
+          {
+            backgroundColor: colors.TabBar,
+            borderColor: colors.DestaqueFIAP + "40",
+          },
+        ]}
+      >
+        <TouchableOpacity
+          onPress={() => router.replace("/dashboard")}
+          style={styles.footerItem}
+        >
+          <Image
+            source={require("../assets/images/MaskGrup.png")}
+            style={[styles.footerIcon, { tintColor: colors.DestaqueFIAP }]}
+            resizeMode="contain"
+          />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => router.replace('/conversations')} style={styles.footerItem}>
-          <Image source={require('../assets/images/mensagem.png')} style={[styles.footerIcon, { tintColor: colors.TextoSecundario }]} resizeMode="contain" />
+        <TouchableOpacity
+          onPress={() => router.replace("/conversations")}
+          style={styles.footerItem}
+        >
+          <Image
+            source={require("../assets/images/mensagem.png")}
+            style={[styles.footerIcon, { tintColor: colors.TextoSecundario }]}
+            resizeMode="contain"
+          />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => router.replace('/profilepage')} style={styles.footerItem}>
-          <Image source={require('../assets/images/perfil.png')} style={[styles.footerIcon, { tintColor: colors.TextoSecundario }]} resizeMode="contain" />
+        <TouchableOpacity
+          onPress={() => router.replace("/profilepage")}
+          style={styles.footerItem}
+        >
+          <Image
+            source={require("../assets/images/perfil.png")}
+            style={[styles.footerIcon, { tintColor: colors.TextoSecundario }]}
+            resizeMode="contain"
+          />
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -132,21 +269,21 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  topBar: {
+topBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 12,
+    paddingTop: 40,  // adicionar isso
     paddingBottom: 6,
     borderBottomWidth: 1,
-  },
+},
   backButton: {
     paddingVertical: 10,
   },
   backText: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   header: {
     paddingHorizontal: 26,
@@ -154,7 +291,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 28,
-    fontWeight: '800',
+    fontWeight: "800",
     letterSpacing: 0.5,
   },
   headerSubtitle: {
@@ -162,7 +299,7 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   loadingContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 60,
   },
   loadingText: {
@@ -170,7 +307,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   errorContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 60,
     paddingHorizontal: 20,
   },
@@ -184,11 +321,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
   },
   retryText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
+    color: "#FFFFFF",
+    fontWeight: "bold",
   },
   emptyContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 60,
   },
   emptyText: {
@@ -204,8 +341,8 @@ const styles = StyleSheet.create({
     borderLeftWidth: 4,
   },
   cardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 10,
   },
   logoContainer: {
@@ -222,7 +359,7 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 17,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   cardStatus: {
     fontSize: 12,
@@ -234,8 +371,8 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   compatText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
+    color: "#FFFFFF",
+    fontWeight: "bold",
     fontSize: 14,
   },
   cardDescription: {
@@ -244,16 +381,16 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   cardInfo: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   infoText: {
     fontSize: 13,
   },
   footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
     paddingVertical: 12,
     borderTopWidth: 1,
   },

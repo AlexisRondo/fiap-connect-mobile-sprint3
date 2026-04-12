@@ -1,9 +1,6 @@
-// Config do Firebase com persistencia de sessao
-
+// Config do Firebase
 import { initializeApp } from "firebase/app";
-// @ts-ignore
-import { initializeAuth, getReactNativePersistence } from "firebase/auth";
-import ReactNativeAsyncStorage from "@react-native-async-storage/async-storage";
+import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAqjS528VvQytFKn55LiSluDqtAY1J0Alw",
@@ -11,13 +8,9 @@ const firebaseConfig = {
   projectId: "fiap-connect",
   storageBucket: "fiap-connect.firebasestorage.app",
   messagingSenderId: "16628777388",
-  appId: "1:16628777388:web:de50ec5f39d01661a7ba09"
+  appId: "1:16628777388:web:de50ec5f39d01661a7ba09",
 };
 
 const app = initializeApp(firebaseConfig);
-
-export const auth = initializeAuth(app, {
-  persistence: getReactNativePersistence(ReactNativeAsyncStorage),
-});
-
+export const auth = getAuth(app);
 export default app;

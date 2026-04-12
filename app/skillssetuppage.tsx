@@ -152,7 +152,7 @@ export default function SkillsSetupPage() {
 
 const styles = StyleSheet.create({
     safeArea: { flex: 1 },
-    container: { paddingHorizontal: 20, paddingTop: 12 },
+    container: { paddingHorizontal: 20, paddingTop: 40 },
     backButton: { paddingVertical: 8, marginBottom: 8 },
     backText: { fontSize: 16, fontWeight: '700' },
     pageTitle: { fontSize: 24, fontWeight: 'bold', marginBottom: 8 },
