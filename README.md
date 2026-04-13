@@ -158,5 +158,5 @@ Na Sprint 4, com o build nativo (necessario para publicacao no Firebase App Dist
 ---
  
 ## Video de Apresentacao
- 
-Link: [a definir]
+
+[![Video da apresentação](https://img.youtube.com/vi/OeshUFbvvhU/0.jpg)](https://www.youtube.com/watch?v=OeshUFbvvhU)
