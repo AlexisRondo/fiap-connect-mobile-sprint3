@@ -209,8 +209,19 @@ Os endpoints novos estão **sem proteção de privilege** no APEX. A autenticaç
 ### Como rodar esta branch
 
 ```bash
+# 1. Clonar o repositório
+git clone https://github.com/AlexisRondo/fiap-connect-mobile-sprint3.git
+
+# 2. Entrar na pasta
+cd fiap-connect-mobile-sprint3
+
+# 3. Mudar para a branch da apresentação
 git checkout sprint-3-apresentacao
+
+# 4. Instalar dependências
 npm install
+
+# 5. Iniciar o projeto
 npx expo start
 ```
 
