@@ -1,6 +1,11 @@
-// Config do Firebase
+// Config do Firebase com persistencia de sessao via AsyncStorage
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+// O TypeScript do Firebase v12 nao exporta o tipo getReactNativePersistence
+// mas a funcao existe em runtime no bundle React Native do SDK.
+// Bug conhecido: github.com/firebase/firebase-js-sdk/issues/9316
+// @ts-ignore
+import { initializeAuth, getReactNativePersistence } from "firebase/auth";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAqjS528VvQytFKn55LiSluDqtAY1J0Alw",
@@ -12,5 +17,11 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
+
+// initializeAuth com persistencia, no lugar de getAuth simples
+// Se o usuario fechar o app, a sessao continua salva no AsyncStorage
+export const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(AsyncStorage),
+});
+
 export default app;
