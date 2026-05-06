@@ -6,6 +6,10 @@ import React, { useEffect } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { AuthProvider, useAuth } from "../src/contexts/AuthContext";
 import { ThemeProvider } from "../src/contexts/ThemeContext";
+import * as SystemUI from "expo-system-ui";
+
+// Define o background root como preto desde o boot, evita flash branco em transicoes
+SystemUI.setBackgroundColorAsync("#000000");
 
 const queryClient = new QueryClient();
 
@@ -41,7 +45,17 @@ function ProtectedRoutes() {
     );
   }
 
-  return <Stack screenOptions={{ headerShown: false }} />;
+  // contentStyle com background preto evita o flash branco em transicoes
+  return (
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: "#000" },
+        animation: "none",
+        animationDuration: 0,
+      }}
+    />
+  );
 }
 
 export default function RootLayout() {

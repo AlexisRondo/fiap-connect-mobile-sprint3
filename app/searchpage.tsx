@@ -41,6 +41,11 @@ export default function SearchPage() {
     router.replace("/dashboard");
   };
 
+  // Navega para a tela de detalhes do grupo clicado
+  const abrirDetalhesGrupo = (idGrupo: number) => {
+    router.push(`/grupo/${idGrupo}` as any);
+  };
+
   const getCompatibilidadeCor = (percentual: number): string => {
     if (percentual >= 80) return "#27AE60";
     if (percentual >= 50) return "#F39C12";
@@ -80,6 +85,9 @@ export default function SearchPage() {
           >
             Grupos compativeis com suas habilidades ({rm})
           </Text>
+          <Text style={[styles.headerHint, { color: colors.TextoSecundario }]}>
+            Toque em um grupo para ver detalhes
+          </Text>
         </View>
 
         {isLoading && (
@@ -96,15 +104,8 @@ export default function SearchPage() {
         {error && (
           <View style={styles.errorContainer}>
             <Text style={[styles.errorText, { color: colors.DestaqueFIAP }]}>
-              Erro: {error.message}
+              Erro ao buscar grupos
             </Text>
-            <Text style={[styles.errorText, { color: colors.TextoSecundario }]}>
-              RM: {rm}
-            </Text>
-            <Text style={[styles.errorText, { color: colors.TextoSecundario }]}>
-              {JSON.stringify((error as any)?.config?.url || "sem url")}
-            </Text>
-
             <TouchableOpacity
               style={[
                 styles.retryButton,
@@ -128,8 +129,10 @@ export default function SearchPage() {
         {grupos && grupos.length > 0 && (
           <View style={styles.resultsList}>
             {grupos.map((grupo: GrupoCompativel) => (
-              <View
+              <TouchableOpacity
                 key={grupo.id_grupo}
+                onPress={() => abrirDetalhesGrupo(grupo.id_grupo)}
+                activeOpacity={0.7}
                 style={[
                   styles.resultCard,
                   {
@@ -211,8 +214,13 @@ export default function SearchPage() {
                   >
                     Vagas: {grupo.vagas_disponiveis}
                   </Text>
+                  <Text
+                    style={[styles.tapHint, { color: colors.DestaqueFIAP }]}
+                  >
+                    Ver detalhes →
+                  </Text>
                 </View>
-              </View>
+              </TouchableOpacity>
             ))}
           </View>
         )}
@@ -263,130 +271,54 @@ export default function SearchPage() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-  },
-  container: {
-    flex: 1,
-  },
-topBar: {
+  safeArea: { flex: 1 },
+  container: { flex: 1 },
+  topBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 40,  // adicionar isso
+    paddingTop: 40,
     paddingBottom: 6,
     borderBottomWidth: 1,
-},
-  backButton: {
-    paddingVertical: 10,
   },
-  backText: {
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  header: {
-    paddingHorizontal: 26,
-    marginVertical: 20,
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: "800",
-    letterSpacing: 0.5,
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    marginTop: 5,
-  },
-  loadingContainer: {
-    alignItems: "center",
-    marginTop: 60,
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-  },
-  errorContainer: {
-    alignItems: "center",
-    marginTop: 60,
-    paddingHorizontal: 20,
-  },
-  errorText: {
-    fontSize: 16,
-    marginBottom: 15,
-  },
-  retryButton: {
-    borderRadius: 8,
-    padding: 12,
-    paddingHorizontal: 30,
-  },
-  retryText: {
-    color: "#FFFFFF",
-    fontWeight: "bold",
-  },
-  emptyContainer: {
-    alignItems: "center",
-    marginTop: 60,
-  },
-  emptyText: {
-    fontSize: 16,
-  },
-  resultsList: {
-    marginHorizontal: 20,
-  },
+  backButton: { paddingVertical: 10 },
+  backText: { fontSize: 16, fontWeight: "700" },
+  header: { paddingHorizontal: 26, marginVertical: 20 },
+  headerTitle: { fontSize: 28, fontWeight: "800", letterSpacing: 0.5 },
+  headerSubtitle: { fontSize: 14, marginTop: 5 },
+  headerHint: { fontSize: 12, marginTop: 4, fontStyle: 'italic' },
+  loadingContainer: { alignItems: "center", marginTop: 60 },
+  loadingText: { marginTop: 12, fontSize: 16 },
+  errorContainer: { alignItems: "center", marginTop: 60, paddingHorizontal: 20 },
+  errorText: { fontSize: 16, marginBottom: 15 },
+  retryButton: { borderRadius: 8, padding: 12, paddingHorizontal: 30 },
+  retryText: { color: "#FFFFFF", fontWeight: "bold" },
+  emptyContainer: { alignItems: "center", marginTop: 60 },
+  emptyText: { fontSize: 16 },
+  resultsList: { marginHorizontal: 20 },
   resultCard: {
     padding: 18,
     borderRadius: 14,
     marginBottom: 16,
     borderLeftWidth: 4,
   },
-  cardHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  logoContainer: {
-    padding: 8,
-    borderRadius: 10,
-    marginRight: 12,
-  },
-  resultLogo: {
-    width: 30,
-    height: 30,
-  },
-  cardHeaderText: {
-    flex: 1,
-  },
-  cardTitle: {
-    fontSize: 17,
-    fontWeight: "700",
-  },
-  cardStatus: {
-    fontSize: 12,
-    marginTop: 2,
-  },
-  compatBadge: {
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  compatText: {
-    color: "#FFFFFF",
-    fontWeight: "bold",
-    fontSize: 14,
-  },
-  cardDescription: {
-    fontSize: 13,
-    lineHeight: 18,
-    marginBottom: 10,
-  },
+  cardHeader: { flexDirection: "row", alignItems: "center", marginBottom: 10 },
+  logoContainer: { padding: 8, borderRadius: 10, marginRight: 12 },
+  resultLogo: { width: 30, height: 30 },
+  cardHeaderText: { flex: 1 },
+  cardTitle: { fontSize: 17, fontWeight: "700" },
+  cardStatus: { fontSize: 12, marginTop: 2 },
+  compatBadge: { borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6 },
+  compatText: { color: "#FFFFFF", fontWeight: "bold", fontSize: 14 },
+  cardDescription: { fontSize: 13, lineHeight: 18, marginBottom: 10 },
   cardInfo: {
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: 'center',
   },
-  infoText: {
-    fontSize: 13,
-  },
+  infoText: { fontSize: 13 },
+  tapHint: { fontSize: 12, fontWeight: '700' },
   footer: {
     flexDirection: "row",
     justifyContent: "space-around",
@@ -394,11 +326,6 @@ topBar: {
     paddingVertical: 12,
     borderTopWidth: 1,
   },
-  footerItem: {
-    padding: 10,
-  },
-  footerIcon: {
-    width: 26,
-    height: 26,
-  },
+  footerItem: { padding: 10 },
+  footerIcon: { width: 26, height: 26 },
 });

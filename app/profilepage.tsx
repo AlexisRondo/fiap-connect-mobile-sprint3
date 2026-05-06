@@ -1,8 +1,9 @@
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Image, SafeAreaView } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Image, SafeAreaView, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../src/contexts/AuthContext';
 import { useTheme } from '../src/contexts/ThemeContext';
+import { buscarUsuario, Usuario } from '../src/services/apexApi';
 
 interface MenuItemProps {
     iconSource: any;
@@ -23,8 +24,36 @@ export default function ProfilePage() {
     const { user, getRm, logout } = useAuth();
     const { colors, isDark, toggleTheme } = useTheme();
 
-    const userName = getRm() || 'Aluno';
-    const userEmail = user?.email || 'email@fiap.com.br';
+    // Dados reais do banco
+    const [usuario, setUsuario] = useState<Usuario | null>(null);
+    const [carregando, setCarregando] = useState(true);
+
+    // Busca dados completos do usuario logado no Oracle
+    useEffect(() => {
+        const carregar = async () => {
+            const rm = getRm();
+            if (!rm) {
+                setCarregando(false);
+                return;
+            }
+            try {
+                const dados = await buscarUsuario(rm);
+                setUsuario(dados);
+            } catch (error) {
+                console.log('Erro ao buscar usuario:', error);
+            } finally {
+                setCarregando(false);
+            }
+        };
+        carregar();
+    }, []);
+
+    // Fallback caso ainda nao carregou ou deu erro - usa dados do firebase
+    const userName = usuario?.nome_completo || getRm() || 'Aluno';
+    const userEmail = usuario?.email_institucional || user?.email || 'email@fiap.com.br';
+    const userTelefone = usuario?.telefone || '';
+    const userBio = usuario?.bio || '';
+    const userRm = usuario?.rm || getRm() || '';
 
     const goBack = () => {
         router.replace('/dashboard');
@@ -49,8 +78,37 @@ export default function ProfilePage() {
                         </View>
                     </View>
 
-                    <Text style={[styles.userName, { color: colors.TextoPrincipal }]}>{userName}</Text>
-                    <Text style={[styles.userEmail, { color: colors.TextoSecundario }]}>{userEmail}</Text>
+                    {carregando ? (
+                        <ActivityIndicator size="small" color={colors.DestaqueFIAP} style={{ marginVertical: 8 }} />
+                    ) : (
+                        <>
+                            <Text style={[styles.userName, { color: colors.TextoPrincipal }]}>{userName}</Text>
+                            <Text style={[styles.userRm, { color: colors.DestaqueFIAP }]}>{userRm}</Text>
+                            <Text style={[styles.userEmail, { color: colors.TextoSecundario }]}>{userEmail}</Text>
+
+                            {userTelefone ? (
+                                <Text style={[styles.userInfo, { color: colors.TextoSecundario }]}>📞 {userTelefone}</Text>
+                            ) : null}
+
+                            {userBio ? (
+                                <Text style={[styles.userBio, { color: colors.TextoPrincipal }]}>{userBio}</Text>
+                            ) : null}
+
+                            {usuario && (
+                                <View style={styles.tagsRow}>
+                                    <View style={[styles.tag, { backgroundColor: colors.DestaqueFIAP + '20' }]}>
+                                        <Text style={[styles.tagText, { color: colors.DestaqueFIAP }]}>{usuario.curso}</Text>
+                                    </View>
+                                    <View style={[styles.tag, { backgroundColor: colors.DestaqueFIAP + '20' }]}>
+                                        <Text style={[styles.tagText, { color: colors.DestaqueFIAP }]}>{usuario.periodo}</Text>
+                                    </View>
+                                    <View style={[styles.tag, { backgroundColor: colors.DestaqueFIAP + '20' }]}>
+                                        <Text style={[styles.tagText, { color: colors.DestaqueFIAP }]}>{usuario.unidade}</Text>
+                                    </View>
+                                </View>
+                            )}
+                        </>
+                    )}
 
                     <View style={[styles.divider, { backgroundColor: colors.DestaqueFIAP }]} />
 
@@ -102,22 +160,10 @@ export default function ProfilePage() {
 }
 
 const styles = StyleSheet.create({
-    safeArea: {
-        flex: 1,
-    },
-    container: {
-        flex: 1,
-        paddingTop: 40,
-    },
-    backButton: {
-        paddingHorizontal: 20,
-        paddingVertical: 8,
-        marginBottom: 8,
-    },
-    backText: {
-        fontSize: 14,
-        fontWeight: '600',
-    },
+    safeArea: { flex: 1 },
+    container: { flex: 1, paddingTop: 40 },
+    backButton: { paddingHorizontal: 20, paddingVertical: 8, marginBottom: 8 },
+    backText: { fontSize: 14, fontWeight: '600' },
     profileCard: {
         marginHorizontal: 16,
         borderRadius: 12,
@@ -125,10 +171,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 8,
     },
-    profileImageContainer: {
-        marginBottom: 4,
-        alignItems: 'center',
-    },
+    profileImageContainer: { marginBottom: 4, alignItems: 'center' },
     profileImagePlaceholder: {
         width: 120,
         height: 120,
@@ -137,19 +180,31 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 10,
     },
-    userName: {
-        fontSize: 18,
-        fontWeight: 'bold',
+    userName: { fontSize: 18, fontWeight: 'bold' },
+    userRm: { fontSize: 13, fontWeight: '600', marginTop: 2 },
+    userEmail: { fontSize: 13, marginBottom: 6, marginTop: 2 },
+    userInfo: { fontSize: 13, marginTop: 4 },
+    userBio: {
+        fontSize: 14,
+        marginTop: 10,
+        textAlign: 'center',
+        fontStyle: 'italic',
+        paddingHorizontal: 10,
     },
-    userEmail: {
-        fontSize: 13,
-        marginBottom: 8,
+    tagsRow: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+        marginTop: 12,
+        gap: 6,
     },
-    divider: {
-        height: 1,
-        width: '90%',
-        marginVertical: 16,
+    tag: {
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 10,
     },
+    tagText: { fontSize: 11, fontWeight: '700' },
+    divider: { height: 1, width: '90%', marginVertical: 16 },
     menuItem: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -157,15 +212,8 @@ const styles = StyleSheet.create({
         paddingVertical: 20,
         borderBottomWidth: 0.5,
     },
-    menuIcon: {
-        width: 30,
-        height: 30,
-        marginRight: 12,
-    },
-    menuText: {
-        fontSize: 16,
-        fontWeight: '600',
-    },
+    menuIcon: { width: 30, height: 30, marginRight: 12 },
+    menuText: { fontSize: 16, fontWeight: '600' },
     themeToggle: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -183,11 +231,7 @@ const styles = StyleSheet.create({
         width: '100%',
         marginTop: 20,
     },
-    logoutText: {
-        color: '#F23064',
-        fontWeight: 'bold',
-        fontSize: 16,
-    },
+    logoutText: { color: '#F23064', fontWeight: 'bold', fontSize: 16 },
     footer: {
         flexDirection: 'row',
         justifyContent: 'space-around',
@@ -195,11 +239,6 @@ const styles = StyleSheet.create({
         paddingVertical: 17,
         borderTopWidth: 1,
     },
-    footerItem: {
-        padding: 10,
-    },
-    footerIcon: {
-        width: 22,
-        height: 22,
-    },
+    footerItem: { padding: 10 },
+    footerIcon: { width: 22, height: 22 },
 });
