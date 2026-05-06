@@ -160,3 +160,58 @@ Na Sprint 4, com o build nativo (necessario para publicacao no Firebase App Dist
 ## Video de Apresentacao
 
 [![Video da apresentação](https://img.youtube.com/vi/OeshUFbvvhU/0.jpg)](https://www.youtube.com/watch?v=OeshUFbvvhU)
+
+
+---
+
+## Branch `sprint-3-apresentacao` (evolução pós-entrega)
+
+Esta branch contém uma evolução do app feita após a entrega original da Sprint 3 (commit marcado pela tag `sprint-3-entrega`).
+
+A branch `main` permanece intocada — corresponde exatamente ao que está no vídeo do README e ao que foi avaliado.
+
+### O que mudou nesta branch
+
+**Novos endpoints REST no Oracle APEX (módulo `fiapconnect`):**
+
+| Endpoint | Método | Função |
+|----------|--------|--------|
+| `/usuario/:rm` | GET | Perfil completo do aluno |
+| `/habilidades/:rm` | GET | Disciplinas selecionadas pelo aluno |
+| `/habilidades/:rm` | POST | Salvar/atualizar disciplinas (DELETE + INSERT) |
+| `/grupos/:id` | GET | Dados básicos do grupo |
+| `/grupos/:id/membros` | GET | Membros ativos do grupo |
+| `/grupos/:id/disciplinas` | GET | Disciplinas com situação (ASSUMIDA / LIVRE) |
+| `/solicitacoes/recebidas/:rm` | GET | Convites recebidos pelo aluno |
+| `/solicitacoes` | POST | Criar solicitação de entrada |
+| `/solicitacoes/:id` | PUT | Aceitar/rejeitar solicitação (atualiza grupo) |
+
+Todos consumidos diretamente pelo app via `fetch`. Cada endpoint tem tratamento de pelo menos 3 exceções diferentes (NO_DATA_FOUND, OTHERS, validações de negócio).
+
+**Telas refatoradas para consumir o Oracle:**
+- `profilepage` — exibe nome real, email, telefone, bio, curso/período/unidade vindos do banco
+- `skillssetuppage` — carrega disciplinas atuais ao abrir e salva no Oracle ao confirmar
+- `searchpage` — cards agora navegam para tela de detalhes
+- `invites` — lista solicitações reais com botões aceitar/rejeitar funcionais
+- `dashboard` — saudação com primeiro nome real, contador de convites pendentes, status reativo
+
+**Tela nova:**
+- `app/grupo/[id].tsx` — detalhes completos do grupo (membros, disciplinas livres/assumidas, solicitar entrada)
+
+### Sobre o problema Expo Go × oracleapex.com
+
+A limitação documentada no README principal foi resolvida nesta branch via headers HTTP customizados (`Origin` e `User-Agent`) na chamada `fetch`, contornando o filtro WAF da Oracle Free Tier. Solução pragmática para apresentacao do projeto
+
+### Sobre segurança dos endpoints
+
+Os endpoints novos estão **sem proteção de privilege** no APEX. A autenticação OAuth2 esta planejado para Sprint 4.
+
+### Como rodar esta branch
+
+```bash
+git checkout sprint-3-apresentacao
+npm install
+npx expo start
+```
+
+Mesmas credenciais de teste do README principal (rm560384, rm559611, rm111111).
